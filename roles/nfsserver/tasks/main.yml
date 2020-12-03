@@ -1,0 +1,43 @@
+---
+# tasks file for nfs-server
+- name: instal packages for NFS
+  yum:
+    name:
+      - nfs-utils
+      - rpcbind
+    state: latest
+
+- name: restart multiple services in a loop
+  service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  loop:
+    - rpcbind
+    - nfs
+    - nfs-server
+    - nfs-lock
+    - nfs-idmap
+
+- name: create a shared direcory
+  file:
+    path: /share
+    state: directory
+    mode: 0755
+    owner: nfsnobody
+    group: nfsnobody
+
+- name: copy /etc/exports
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0755
+
+- name: restart nfs server
+  service:
+    name: nfs
+    state: restarted
+    enabled: yes
+
