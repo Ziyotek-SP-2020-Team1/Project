@@ -1,0 +1,119 @@
+---
+# tasks file for common
+
+#- name: ssh-copy-id
+#  authorized_key:
+#    user: "{{ ansible_user_id }}"
+#    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+# Setup FTP/Mirror client "ansible_hostname": "prdx-ftp101"
+
+- name: setup ftp
+  yum:
+    name: ftp
+    state: latest
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: Remove existing repo files
+  shell: sudo rm -rf /etc/yum.repos.d/*.repo
+  args:
+    warn: false
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: Remove existing repo files
+  file:
+    path: /etc/yum.repos.d/*.repo
+    state: absent
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: Use custom repo
+  copy:
+    src: local.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: yum clean all
+  command: yum clean all
+  args:
+    warn: no
+
+- name: update box
+  yum:
+    name: '*'
+    state: latest
+  when: ansible_hostname != "prdx-ftp101"
+
+#Setup NFS-AutoFS clients
+
+- name: instal packages for NFS
+  yum:
+    name: nfs-utils
+    state: installed
+
+- name: restart multiple services in a loop
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  become: true
+  loop:
+    - rpcbind
+    - nfs-server
+    - nfs-lock
+    - nfs-idmap
+
+- name: create a mountpoint for nfs
+  file:
+    path: /share
+    state: directory
+    mode: 755
+    owner: nobody
+    group: nobody
+
+- name: AUTOFS MOUNT | Install needed packages
+  package:
+    name: autofs
+    state: installed
+
+- name: Create auto.master and add map-files
+  template:
+    src: auto.master.j2
+    dest: /etc/auto.master
+
+- name: Create map-files
+  template:
+    src: auto.mount.j2
+    dest: /etc/auto.demo
+
+- name: AUTOFS MOUNT | Enable Autofs and dependencies
+  service:
+    name: autofs
+    state: started
+    enabled: yes
+
+
+#Setup Samba clients
+
+- name: install packages
+  yum:
+    name: ['samba-client', 'cifs-utils']
+    state: latest
+
+- name: create directory /clients give permissions
+  file:
+    path: /client
+    state: directory
+    mode: '777'
+
+- name: append /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: //prdx-samba101/secure /client/ cifs user=sambaadmin,password=password,sec=ntlmssp  0 0
+
+- name: mount a samba share
+  shell: mount -a
+  args:
+    warn: false

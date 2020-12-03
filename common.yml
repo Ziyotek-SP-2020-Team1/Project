@@ -1,0 +1,41 @@
+---
+
+- name: update all boxes
+  hosts: testos7
+  become: yes
+
+  tasks:
+
+    - name: ssh-copy-id
+      authorized_key:
+        user: "{{ ansible_user_id }}"
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+    - name: setup ftp
+      yum: 
+        name: ftp
+        state: latest
+
+    - name: Remove existing repo files
+      shell: rm -rf /etc/yum.repos.d/*.repo
+      args:
+        warn: false
+
+    - name: Use custom repo
+      copy:
+        src: local.repo
+        dest: /etc/yum.repos.d/
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: yum clean all
+      command: yum clean all
+      args:
+        warn: no
+
+    - name: update box
+      yum:
+        name: '*'
+        state: latest
+

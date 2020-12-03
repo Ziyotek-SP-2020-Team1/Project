@@ -1,0 +1,14 @@
+---
+# handlers file for db171
+
+- name: restart db service
+  service:
+    name: mariadb
+    state: restarted
+    enabled: true
+- name: restart httpd service
+  service:
+    name: httpd
+    state: restarted
+    enabled: true
+

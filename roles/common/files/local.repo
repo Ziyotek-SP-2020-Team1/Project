@@ -1,0 +1,5 @@
+[local]
+name=local-CentOS-$releasever
+baseurl=ftp://192.168.35.17/repos/$releasever
+enabled=1
+gpgcheck=0

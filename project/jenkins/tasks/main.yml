@@ -1,0 +1,44 @@
+---
+# tasks file for jenkins
+
+- name: Install Inital Packages
+  yum:
+    name: 
+      - wget
+      - java
+      - git
+    state: present
+
+- name: Download Jenkins.repo
+  get_url:
+    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+
+- name: Import Jenkins Key
+  rpm_key:
+    state: present
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+- name: Install Jenkins
+  yum:
+    name: jenkins
+    state: present
+
+- name: Start Jenkins
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+
+- name: Sleep for 15 Secs and Resume Playbook 
+  wait_for: timeout=15
+  delegate_to: localhost
+
+- name: Init Password Jenkin
+  shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+  changed_when: false
+  register: result
+
+- name: Print Init Password Jenkins
+  debug:
+    var: result.stdout

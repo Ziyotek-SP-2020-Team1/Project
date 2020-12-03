@@ -1,0 +1,45 @@
+---
+# tasks file for loadbalancer6
+
+#- name: update /etc/hosts file with webservers
+#  template:
+#    src: hosts.j2
+#    dest: /etc/hosts
+#    owner: root
+#    group: root
+#    mode: 0644
+
+- name: install haproxy
+  yum:
+    name: haproxy
+    state: latest
+
+- name: update haproxy configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: 0644
+
+- name: update /etc/rsyslog.conf
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create /etc/rsyslog.d/haproxy.conf
+  template:
+    src: haproxy.conf.j2
+    dest: /etc/rsyslog.d/haproxy.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: start and enable haproxy service
+  service:
+    name: haproxy
+    state: restarted
+    enabled: yes

@@ -1,0 +1,8 @@
+---
+
+- name: use ftp role playbook
+  hosts: ftpserver
+  become: yes
+  roles:
+    - common
+    - ftp

@@ -1,0 +1,5 @@
+- hosts: dnsmaster
+  become: yes
+  roles:
+    - common
+    - dns-master

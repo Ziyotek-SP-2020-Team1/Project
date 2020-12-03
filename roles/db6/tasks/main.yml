@@ -1,0 +1,42 @@
+---
+# tasks file for database6
+- name: install repo package
+  yum:
+    name:
+      - epel-release
+      - httpd
+    state: latest
+
+- name: Change httpd.conf file
+  command: sudo sed -i "s/^\#ServerName www.example.com:80.*/Servername prdx-db161.ziyotek1.local/" /etc/httpd/conf/httpd.conf
+
+- name: start httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+      
+- name: install packages
+  yum:
+    name:
+      - yum-utils
+      - mysql
+      - mysql-server
+      - php
+      - php-mysql
+      - phpmyadmin
+      - MySQL-python
+    state: latest
+
+- name: copy PhP conf file
+  template:
+    src: phpMyAdmin.conf.j2
+    dest: /etc/httpd/conf.d/phpMyAdmin.conf
+
+- name: copy PhP conf file
+  template:
+    src: config.inc.php.j2
+    dest: /etc/phpMyAdmin/config.inc.php
+  notify:
+    - restart db service
+    - restart httpd service

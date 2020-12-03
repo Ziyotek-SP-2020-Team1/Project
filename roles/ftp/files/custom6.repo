@@ -1,0 +1,32 @@
+[base6]
+name=CentOS-6 - Base
+mirrorlist=http://mirrorlist.centos.org/?release=6&arch=$basearch&repo=os&infra=$infra
+#baseurl=http://mirror.centos.org/centos/6/os/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[updates6]
+name=CentOS-6 - Updates
+mirrorlist=http://mirrorlist.centos.org/?release=6&arch=$basearch&repo=updates&infra=$infra
+#baseurl=http://mirror.centos.org/centos/6/updates/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[extras6]
+name=CentOS-6 - Extras
+mirrorlist=http://mirrorlist.centos.org/?release=6&arch=$basearch&repo=extras&infra=$infra
+#baseurl=http://mirror.centos.org/centos/6/extras/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+[epel6]
+name=Extra Packages for Enterprise Linux 6 - $basearch
+#baseurl=http://download.fedoraproject.org/pub/epel/6/$basearch
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6

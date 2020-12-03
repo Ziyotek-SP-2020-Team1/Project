@@ -1,0 +1,34 @@
+---
+# tasks file for db171
+- name: install repo package
+  yum:
+    name:
+      - epel-release
+    state: latest
+
+- name: install packages
+  yum:
+    name:
+      - yum-utils
+      - httpd
+      - mariadb-server
+      - mariadb
+      - php
+      - php-mysql
+      - phpmyadmin
+      - MySQL-python
+    state: latest
+  
+- name: copy PhP conf file
+  template: 
+    src: phpMyAdmin.conf.j2
+    dest: /etc/httpd/conf.d/phpMyAdmin.conf
+
+- name: copy PhP conf file
+  template:
+    src: config.inc.php.j2
+    dest: /etc/phpMyAdmin/config.inc.php
+  notify:
+    - restart db service
+    - restart httpd service
+    

@@ -1,0 +1,134 @@
+---
+# tasks file for nagios
+
+- name: Install necessary packages needed
+  yum:
+    name:
+      - gcc
+      - glibc-common
+      - gd
+      - gd-devel
+      - make
+      - net-snmp
+      - openssl-devel
+      - httpd
+      - php
+      - unzip
+      - wget
+      - postfix
+      - perl
+      - python-passlib
+
+- name: Download nagios core
+  get_url:
+    url: https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.5.tar.gz
+    dest: /tmp/nagioscore.tar.gz
+
+- name: Create directory
+  file:
+    path: /nagioscore
+    state: directory
+
+- name: Extract nagioscore.tar.gz
+  unarchive:
+    src: /tmp/nagioscore.tar.gz
+    dest: /nagioscore
+    remote_src: yes
+
+- name: Configure Nagios
+  shell: cd /nagioscore/nagioscore* && ./configure
+
+- name: Compile Nagios
+  shell: cd /nagioscore/nagioscore-nagios-4.4.5 && make all 
+
+- name: Creating Nagios group users
+  shell: cd /nagioscore/nagioscore-nagios-4.4.5 && make install-groups-users
+
+- name: Creating Nagios user
+  user:
+    name: nagios
+    group: apache
+
+- name: Install binary files, CGIs & HTML
+  shell: cd /nagioscore/nagioscore-nagios-4.4.5 && make install
+
+- name: Install daemon files
+  shell: cd /nagioscore/nagioscore-nagios-4.4.5 && make install-daemoninit
+
+- name: Enable httpd service
+  systemd:
+    name: httpd
+    enabled: yes
+    state: stopped
+
+- name: Install command mode
+  shell: cd /nagioscore/nagioscore* && make install-commandmode
+
+- name: Install configuration files
+  shell: cd /nagioscore/nagioscore* && make install-config
+
+- name: Install apache config files
+  shell: cd /nagioscore/nagioscore* && make install-webconf
+
+- name: Download Nagios Plugins
+  get_url:
+    url: http://nagios-plugins.org/download/nagios-plugins-2.3.2.tar.gz
+    dest: /tmp/nagiosplugins.tar.gz
+
+- name: Create directory
+  file:
+    path: /nagiosplugins
+    state: directory
+
+- name: Extract nagios-plugins.tar.gz
+  unarchive:
+    src: /tmp/nagiosplugins.tar.gz
+    dest: /nagiosplugins
+    remote_src: yes
+
+- name: Configure Nagios Plugins
+  shell: cd /nagiosplugins/nagios-plugins* && ./configure
+
+- name: Compile Nagios Plugins
+  shell: cd /nagiosplugins/nagios-plugins* && make
+
+- name: Install Nagios Plugins
+  shell: cd /nagiosplugins/nagios-plugins* && make install
+
+- name: Commenting out line in nagios.cfg file
+  lineinfile:
+    path: /usr/local/nagios/etc/nagios.cfg
+    regexp: '#cfg_dir=/usr/local/nagios/etc/servers'
+    line: 'cfg_dir=/usr/local/nagios/etc/servers'
+    backrefs: yes
+
+- name: Create servers directory
+  file:
+    path: /usr/local/nagios/etc/servers
+    state: directory
+
+#- name: Commenting out line in nagios.cfg file
+#  lineinfile:
+#    path: /usr/local/nagios/etc/objects/contacts.cfg
+#    regexp: 'nagios@localhost'
+#    line: 'jyoon@ziyotek.net'
+#   backrefs: yes
+
+- name: Set htpasswd for gui users
+  htpasswd: path=/usr/local/nagios/etc/htpasswd.users name={{ item.user }} password={{ item.pass }} state=present
+  with_items: "{{ nagios_users }}"
+
+- name: create a index.html file and give permission
+  file:
+    path: /var/www/html/index.html
+    mode: '755'
+
+- name: restart apache
+  service:
+    name: httpd
+    state: restarted
+
+- name: restart nagios
+  service:
+    name: nagios
+    state: restarted

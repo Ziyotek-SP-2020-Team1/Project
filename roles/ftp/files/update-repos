@@ -1,0 +1,4 @@
+#!/bin/bash
+reposync -g -l -d -m -n --download-metadata -r base -r extras -r updates -r epel -p /var/ftp/pub/repos/7/
+createrepo --update /var/ftp/pub/repos/7/
+done

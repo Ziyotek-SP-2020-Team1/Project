@@ -1,0 +1,24 @@
+---
+# tasks file for ftp server
+
+- name: Install Vsftpd createrepo and yum-utils
+  yum:
+    name:
+      - vsftpd
+      - createrepo
+      - yum-utils
+    state: present
+
+- name: Add the user ftpuser
+  user:
+    name: ftpuser
+    password: "{{ 'password' | password_hash('sha512') }}"
+    state: present
+    
+- name: Install configuration file
+  copy:
+    src: vsftpd.conf
+    dest: /etc/vsftpd/
+    mode: '0600'
+#  notify: restart vsftpd
+#- name: restart vsftpd

@@ -1,0 +1,4 @@
+- hosts: jenkinsserver
+  become: yes
+  roles:
+    - { role: jenkins }

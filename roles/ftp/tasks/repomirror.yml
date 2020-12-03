@@ -1,0 +1,121 @@
+---
+# tasks file for ftp server
+
+- name: Import GPG-keys
+  rpm_key:
+    state: present
+    key: "{{ item }}"
+  with_items:
+    - https://www.centos.org/keys/RPM-GPG-KEY-CentOS-6 
+    - https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6
+    - https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7
+    - https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+
+- name: Create repos directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  with_items:
+    - /var/ftp/pub/repos/6
+    - /var/ftp/pub/repos/7
+  notify:
+    - restart vsftpd
+
+#can be handler but not work!
+- name: restart vsftpd
+  service:
+    name: vsftpd
+    state: restarted
+    enabled: true
+
+#can be handler but not work!
+- name: Remove existing repo files
+  shell: rm -rf /etc/yum.repos.d/*.repo
+  args:
+    warn: false
+
+- name: Create CentOS6 config for yum
+  copy:
+    src: yum6.conf
+    dest: /etc/yum6.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create repo file for CentOS6
+  copy:
+    src: custom6.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+
+#can be handler but not work!
+- name: cleaning task for yum
+  command: yum clean all
+  args:
+    warn: no
+
+#can be handler but not work!
+- name: delete cache files
+  file:
+    path: /var/cache/yum
+    state: absent
+
+- name: Reposync for Centos6
+  command: reposync -g -m -n --download-metadata -c /etc/yum6.conf -r base6 -r extras6 -r updates6 -r epel6 -p /var/ftp/pub/repos/6/
+
+- name: Createrepo for CentOS6
+  command: createrepo /var/ftp/pub/repos/6/
+  args:
+    chdir: /var/ftp/pub/repos/6/
+
+#can be handler but not work!
+- name: Remove existing repo files
+  shell: rm -rf /etc/yum.repos.d/*.repo
+  args:
+    warn: false
+
+- name: Create repo file for CentOS7
+  copy:
+    src: custom7.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+
+#can be handler but not work!
+- name: cleaning task for yum
+  command: yum clean all
+  args:
+    warn: no
+
+#can be handler but not work!
+- name: delete cache files
+  file:
+    path: /var/cache/yum
+    state: absent
+
+- name: Reposync for Centos7
+  command: reposync -g -m -n --download-metadata -r base -r extras -r updates -r epel -p /var/ftp/pub/repos/7/
+
+- name: Createrepo for CentOS7
+  command: createrepo /var/ftp/pub/repos/7/
+  args:
+    chdir: /var/ftp/pub/repos/7/
+
+#
+#- name:at this point Clean all on ALL servers
+#
+
+- name: Create crone job
+  copy:
+    src: update-repos
+    dest: /etc/cron.weekly/
+    owner: root
+    group: root
+    mode: 0755
+

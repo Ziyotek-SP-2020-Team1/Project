@@ -1,0 +1,150 @@
+---
+# tasks file for ldap
+
+- name: install packages
+  yum: 
+    name: ['openldap', 'openldap-clients', 'openldap-servers', 'python-ldap', 'policycoreutils', 'policycoreutils-python', 'nss-pam-ldapd', 'httpd', 'phpldapadmin', 'libsemanage-python'] 
+    state: latest
+
+- name: start and enable slapd
+  service:
+    name: slapd
+    state: started
+    enabled: yes
+ 
+- name: start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: generate encrypted server.key
+  command: openssl genrsa -des3 -passout pass:{{ sslpass }} -out /etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.key 2048 -noout creates=/etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.key
+ 
+- name: generate decrpyted server.pem
+  command: openssl rsa -in /etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.key -passin pass:{{ sslpass }} -out /etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.pem creates=/etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.pem
+ 
+- name: generate the certificate request file
+  command: openssl req -new -key /etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.pem -out /etc/openldap/certs/{{ ansible_hostname }}.{{ dc1 }}.{{ dc2 }}.csr -subj "/C={{ c }}/ST={{ st }}/L={{ l }}/O={{ o }}/OU={{ ou }}/CN={{ ansible_hostname }}.{{ dc1 }}.{{ dc2 }}/emailAddress={{ email }}" creates=/etc/openldap/certs/{{ ansible_hostname }}.{{ dc1 }}.{{ dc2 }}.csr
+ 
+- name: create the host certificate
+  command: openssl x509 -req -days 3650 -in /etc/openldap/certs/{{ ansible_hostname }}.{{ dc1 }}.{{ dc2 }}.csr -signkey /etc/openldap/certs/{{ dc1 }}.{{ dc2 }}.pem -out /etc/openldap/certs/{{ ansible_hostname }}.crt creates=/etc/openldap/certs/{{ ansible_hostname }}.crt
+  
+- name: copy phpldapadmin config.php
+  template:
+    src: config.j2
+    dest: /etc/phpldapadmin/config.php
+
+- name: copy phpldapadmin.conf for apache
+  template:
+    src: phpldapadmin.j2
+    dest: /etc/httpd/conf.d/phpldapadmin.conf
+
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted
+    enabled: true
+
+- name: create ldif and script directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ldap
+    group: ldap
+    mode: 0775
+  with_items:
+    - /etc/openldap/ldifs
+    - /etc/openldap/scripts
+
+- name: create admin scripts directory
+  file:
+    path: /etc/openldap/scripts/admin
+    state: directory
+    owner: ldap
+    group: ldap
+    mode: 0775
+
+- name: copy the create_user script to admin script folder
+  template:
+    src: create_user.j2
+    dest: /etc/openldap/scripts/admin/create_user.sh
+    owner: ldap
+    group: ldap
+    mode: 0775
+
+- name: copy the create_group script to admin script folder
+  template:
+    src: create_group.j2
+    dest: /etc/openldap/scripts/admin/create_group.sh
+    owner: ldap
+    group: ldap
+    mode: 0775
+
+- name: copy counters to admin script folder
+  copy:
+    src: "{{ item }}"
+    dest: /etc/openldap/scripts/admin/
+    owner: ldap
+    group: ldap
+    mode: 0775
+  with_items:
+    - user_uid_counter.sh
+    - group_gid_counter.sh
+
+- name: copy the base ldif directory structure script
+  template:
+    src: ldif_base.j2
+    dest: /etc/openldap/scripts/ldif_base.sh
+    owner: ldap
+    group: ldap
+    mode: 0775
+
+- name: copy mod_ssl script to enable StartTLS
+  template:
+    src: mod_ssl.j2
+    dest: /etc/openldap/scripts/mod_ssl.sh
+    owner: ldap
+    group: ldap
+    mode: 0775
+
+- name: copy logging snd sync script
+  copy:
+    src: "{{ item }}"
+    dest: /etc/openldap/scripts/
+    owner: ldap
+    group: ldap
+    mode: 0775
+  with_items:
+    - logging.sh
+    - sync_overlay.sh
+
+- name: run base ldif script
+  command: /etc/openldap/scripts/ldif_base.sh creates=/etc/openldap/ldifs/base_complete
+
+- name: enable mod_ssl
+  command: /etc/openldap/scripts/mod_ssl.sh creates=/etc/openldap/ldifs/{{ ansible_hostname }}_ssl_complete
+
+- name: restart slapd
+  service:
+    name: slapd
+    state: restarted
+    enabled: true
+
+- name: enable sync overlay
+  command: /etc/openldap/scripts/sync_overlay.sh creates=/etc/openldap/ldifs/sync_overlay_complete
+
+- name: restart slapd
+  service:
+    name: slapd
+    state: restarted
+    enabled: true
+
+- name: enable logging
+  command: /etc/openldap/scripts/logging.sh creates=/etc/openldap/scripts/logging_enabled
+
+- name: restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted
+

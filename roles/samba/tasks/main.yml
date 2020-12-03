@@ -1,0 +1,57 @@
+---
+# tasks file for samba
+- name: setup packages
+  yum:
+    name:
+      - samba
+      - samba-common
+      - samba-client
+    state: latest
+
+- name: make sure samba group exists
+  group:
+    name: samba
+    state: present
+
+#    - name: Creates open directory
+ #     file:
+  #      path: /sambashare/open/
+#        group: samba
+ #       state: directory
+  #      mode: 0777
+   #     recurse: yes
+
+- name: Creates secure directory
+  file:
+    path: /smbshare/
+    group: samba
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: add users sambaadmin
+  user:
+    name: sambaadmin
+    groups: samba
+    state: present
+
+- name: set samba password for sambaadmin
+  shell: echo -ne "password\npassword\n" | smbpasswd -a -s sambaadmin
+
+- name: copy conf file
+  template:
+    src: smb.conf
+    dest: /etc/samba/smb.conf
+    mode: 0644
+
+- name: restart smb
+  service:
+    name: smb
+    state: restarted
+    enabled: yes
+
+- name: restart nmb
+  service:
+    name: nmb
+    state: restarted
+    enabled: yes

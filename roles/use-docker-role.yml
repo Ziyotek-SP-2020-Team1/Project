@@ -1,0 +1,7 @@
+---
+- name: docker server role playbook
+  hosts: dockerworker2
+  become: yes
+  roles:
+    - common
+    - docker

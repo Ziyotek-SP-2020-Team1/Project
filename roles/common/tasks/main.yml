@@ -1,0 +1,142 @@
+---
+# tasks file for common
+
+ 
+# Setup FTP/Mirror client 
+
+- name: FTP/MIRROR | setup ftp
+  yum:
+    name: ftp
+    state: latest
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: FTP/MIRROR | Remove existing repo files
+  shell: sudo rm -rf /etc/yum.repos.d/*.repo
+  args:
+    warn: false
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: FTP/MIRROR | Remove existing repo files
+  file:
+    path: /etc/yum.repos.d/*.repo
+    state: absent
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: FTP/MIRROR | Use custom repo
+  copy:
+    src: local.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname != "prdx-ftp101"
+
+- name: FTP/MIRROR | yum clean all
+  command: yum clean all
+  args:
+    warn: no
+  when: ansible_hostname != "prdx-ftp101"
+
+
+#Setup NTP client
+
+- name: NTP | setup chrony
+  copy:
+    src: chrony.conf
+    dest: /etc/chrony.conf
+
+
+#Setup NFS-AutoFS clients
+
+- name: NFS | instal packages
+  yum:
+    name: nfs-utils
+    state: installed
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: NFS | restart multiple services in a loop
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  become: true
+  loop:
+    - rpcbind
+    - nfs-server
+    - nfs-lock
+    - nfs-idmap
+  when:
+    - ansible_hostname != "prdx-nfs101"
+    - ansible_facts['distribution_major_version'] == "7"
+
+- name: NFS | restart rpcbind for C6
+  service:
+    name: rpcbind
+    state: started
+    enabled: true
+  when:
+    - ansible_hostname != "prdx-nfs101"
+    - ansible_facts['distribution_major_version'] == "6"
+
+- name: NFS | create a mountpoint for NFS
+  file:
+    path: /share
+    state: directory
+    mode: 755
+    owner: nobody
+    group: nobody
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: AUTOFS | Install needed packages
+  package:
+    name: autofs
+    state: installed
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: AUTOFS | Create auto.master and add map-files
+  template:
+    src: auto.master.j2
+    dest: /etc/auto.master
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: AUTOFS | Create map-files for AUTOFS
+  template:
+    src: auto.mount.j2
+    dest: /etc/auto.demo
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: AUTOFS | Enable Autofs and dependencies
+  service:
+    name: autofs
+    state: started
+    enabled: yes
+  when: ansible_hostname != "prdx-nfs101"
+ 
+
+#Setup Samba clients
+
+- name: SAMBA | install packages
+  yum:
+    name: ['samba-client', 'cifs-utils']
+    state: latest
+  when: ansible_hostname != "prdx-samba101"
+
+- name: SAMBA | create directory /clients give permissions
+  file:
+    path: /client
+    state: directory
+    mode: '777'
+  when: ansible_hostname != "prdx-samba101"
+
+- name: SAMBA | append /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: //prdx-samba101/secure /client/ cifs user=sambaadmin,password=password,sec=ntlmssp 0 0
+  when: ansible_hostname != "prdx-samba101"
+
+- name: SAMBA | mount a samba share
+  shell: mount -a
+  args:
+    warn: false
+  when: ansible_hostname != "prdx-samba101"
+ 

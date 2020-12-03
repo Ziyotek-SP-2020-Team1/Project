@@ -1,0 +1,5 @@
+- hosts: sambaserver
+  become: yes
+  roles:
+    - common
+    - samba

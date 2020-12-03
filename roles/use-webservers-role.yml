@@ -1,0 +1,7 @@
+---
+- name: role foe webservers
+  hosts: webservers6:webservers7
+  become: yes
+  roles:
+    - common
+    - webservers

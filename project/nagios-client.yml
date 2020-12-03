@@ -1,0 +1,4 @@
+- hosts: nagiosclient
+  become: yes
+  roles:
+    - { role: nagios-client }

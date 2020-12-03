@@ -1,0 +1,18 @@
+---
+# tasks file for chrony-server
+
+- name: install chrony packages 
+  yum: 
+    name: chrony 
+    state: latest
+
+- name: configure chrony
+  template:
+    src: chrony.server.conf.j2
+    dest: /etc/chrony.conf
+
+- name: restart chronyd
+  service: 
+    name: chronyd 
+    state: restarted
+

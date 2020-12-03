@@ -1,0 +1,87 @@
+---
+# tasks file for mail-server
+#
+# 1. installing "dovecot"
+- name: install dovecot
+  yum:
+    name: dovecot
+    state: present
+
+- name: configure dovecot configuration
+  template:
+    src: dovecot.conf.j2
+    dest: /etc/dovecot/dovecot.conf
+    
+- name: dovecot mail location
+  template: 
+    src: dovecot-10-mail.conf.j2
+    dest: /etc/dovecot/conf.d/10-mail.conf
+
+- name: dovecot auth configuration
+  template: 
+    src: dovecot-auth.conf.j2
+    dest: /etc/dovecot/conf.d/10-auth.conf
+
+- name: dovecot master configuration
+  template:
+   src: dovecot-10-master.conf.j2
+   dest: /etc/dovecot/conf.d/10-master.conf
+
+- name: start and enable dovecot
+  service:
+    name: dovecot
+    state: started
+    enabled: true
+
+# 2. installing "postfix"
+
+- name: install postfix
+  yum:
+    name: postfix
+    state: present
+
+
+- name: insatll postfix configuration
+  template:
+    src: postfix.main.cf.j2
+    dest: /etc/postfix/main.cf
+ 
+- name: start and enable postfix
+  service: 
+    name: postfix
+    enabled: true
+    state: started
+
+# 3. installing "squirrelmail"
+
+- name: install epel
+  yum:
+    name: epel-release
+    state: present
+    
+- name: install squirrelmail
+  yum:
+    name: squirrelmail
+    state: present
+
+- name: Install Squirrelmail configuration
+  template:
+    src: squirrelmail.config.php.j2
+    dest: /usr/share/squirrelmail/config/config.php
+
+- name: install apache
+  yum: 
+    name: httpd
+    state: present
+
+- name: configure httpd
+  template: 
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+
+- name: start httpd
+  service:
+    name: httpd
+    state: started
+    enabled: true 
+

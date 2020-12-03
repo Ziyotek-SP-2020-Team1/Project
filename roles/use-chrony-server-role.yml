@@ -1,0 +1,7 @@
+---
+- name: chrony server role playbook
+  hosts: ntpservers
+  become: yes
+  roles:
+    - common
+    - chrony-server

@@ -1,0 +1,8 @@
+---
+
+- name: Configuring ldap server
+  hosts: ldapserver
+  become: yes
+  roles:
+    - common
+    - ldap

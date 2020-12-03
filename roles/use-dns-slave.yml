@@ -1,0 +1,5 @@
+- hosts: dnsslave1:dnsslave2
+  become: yes
+  roles:
+    - common
+    - dns-slaves

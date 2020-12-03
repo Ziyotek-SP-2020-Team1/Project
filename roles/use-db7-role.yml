@@ -1,0 +1,6 @@
+- hosts: database7
+  become: yes
+  roles:
+    - common
+    - db7
+
