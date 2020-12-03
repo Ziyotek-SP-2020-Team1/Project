@@ -1,0 +1,6 @@
+---
+# defaults file for nagios
+
+nagios_users:
+  - user: nagiosadmin
+    pass: password
