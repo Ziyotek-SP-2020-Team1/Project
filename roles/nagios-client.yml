@@ -1,4 +1,24 @@
-- hosts: nagiosclient
+- hosts:
+#    - ntpservers
+#    - dnsmaster
+#    - dnsslaves
+#    - ftpserver
+#    - nfsserver
+#    - sambaserver
+#    - mailserver
+#    - database6
+#    - database7
+#    - webservers6
+#    - webservers7
+#    - loadbalancer6
+#    - loadbalancer7
+#    - ldapserver
+#    - ansibleserver
+    - dockermanager
+    - dockerworkers
+    - kubermaster
+    - kubeworkers
+    - jenkinsserver
   become: yes
   roles:
     - { role: nagios-client }
