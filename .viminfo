@@ -82,18 +82,20 @@ $
 	-
 
 # File marks:
-'0  43  129  ~/roles/nfsserver/tasks/main.yml
-'1  1  0  ~/roles/nfs-server/tasks/main.yml
-'2  1  0  ~/roles/ftp
-'3  43  0  ~/roles/nfs-server/tasks/main.yml
-'4  78  208  ~/roles/common/tasks/main.yml
-'5  15  0  ~/roles/chrony-server/tasks/main.yml
-'6  65  25  ~/roles/common/tasks/main.yml
-'7  57  7  ~/roles/common/tasks/main.yml
-'8  1  0  ~/roles/nfs-server/vars/main.yml
-'9  1  40  ~/roles/nfs-server/templates/exports.j2
+'0  5  8  ~/roles/use-nfs-server-role.yml
+'1  43  129  ~/roles/nfsserver/tasks/main.yml
+'2  1  0  ~/roles/nfs-server/tasks/main.yml
+'3  1  0  ~/roles/ftp
+'4  43  0  ~/roles/nfs-server/tasks/main.yml
+'5  78  208  ~/roles/common/tasks/main.yml
+'6  15  0  ~/roles/chrony-server/tasks/main.yml
+'7  65  25  ~/roles/common/tasks/main.yml
+'8  57  7  ~/roles/common/tasks/main.yml
+'9  1  0  ~/roles/nfs-server/vars/main.yml
 
 # Jumplist (newest first):
+-'  5  8  ~/roles/use-nfs-server-role.yml
+-'  1  0  ~/roles/use-nfs-server-role.yml
 -'  43  129  ~/roles/nfsserver/tasks/main.yml
 -'  1  0  ~/roles/nfsserver/tasks/main.yml
 -'  1  0  ~/roles/nfs-server/tasks/main.yml
@@ -191,10 +193,14 @@ $
 -'  45  15  ~/roles/loadbalancer7/tasks/main.yml
 -'  1  0  ~/roles/loadbalancer7/tasks/main.yml
 -'  14  8  ~/roles/webservers7/templates/index.j2
--'  43  4  ~/roles/webservers7/tasks/main.yml
--'  1  0  ~/roles/webservers7/tasks/main.yml
 
 # History of marks within files (newest to oldest):
+
+> ~/roles/use-nfs-server-role.yml
+	"	5	8
+	^	5	9
+	.	5	9
+	+	5	9
 
 > ~/roles/nfsserver/tasks/main.yml
 	"	43	129
@@ -417,10 +423,3 @@ $
 	+	3	21
 	+	6	11
 	+	3	21
-
-> ~/roles/dns-master/templates/ziyotek1.rlz.j2
-	"	1	6
-	^	1	7
-	.	50	40
-	+	1	7
-	+	50	40
