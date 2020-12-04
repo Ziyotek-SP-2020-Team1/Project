@@ -1,0 +1,30 @@
+---
+- name: installing Kubernetes
+  hosts: kubernetes
+  become: yes
+  vars:
+    kubernetes_allow_pods_on_master: true
+    kubernetes_kubelet_extra_args: "--fail-swap-on=false"
+
+  roles:
+    - ansible-role-docker
+    - ansible-role-kubernetes
+
+
+### for installation
+#1.swapoff -a
+#2. vi /etc/fstab comment swap
+#3. yum update -y: reboot 
+#4. comment task in kubernetes role about global nodes joining
+#5. vi /etc/flannel/subnet.env 
+#FLANNEL_NETWORK=10.244.0.0/16
+#FLANNEL_SUBNET=10.244.0.1/24
+#FLANNEL_MTU=1450
+#FLANNEL_IPMASQ=true
+#sudo kubeadm token create --print-join-command
+#kubeadm join 192.168.35.42:6443 --token m7z4bm.hbav59rldjzpq0l9     --discovery-token-ca-cert-hash sha256:40117d83744cad7edd33f49f148b64de91b93e8bd537d0ee2662a95bd48a20ac
+#kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+#sudo kubectl get po -n kuberentes-dashboard
+#kubectl -n kubernetes-dashboard describe service kubernetes-dashboard
+#sudo kubectl get po -n kuberentes-dashboard
+#

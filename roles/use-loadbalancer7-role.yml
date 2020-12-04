@@ -1,5 +1,5 @@
 ---
-- name: loadbalancer7 role playbook
+- name: load balancer in CentOS7 role
   hosts: loadbalancer7
   become: yes
   roles:

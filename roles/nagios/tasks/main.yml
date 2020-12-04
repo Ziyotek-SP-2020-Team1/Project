@@ -132,3 +132,9 @@
   service:
     name: nagios
     state: restarted
+
+- name: copy client cfg files
+  template:
+    src: client-*.j2
+    dest: /usr/local/nagios/etc/servers/
+

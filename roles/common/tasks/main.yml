@@ -38,60 +38,54 @@
   when: ansible_hostname != "prdx-ftp101"
 
 
+#Setup common packages
+
+- name: COMMON | setup common packages
+  yum:
+    name: ['bind-utils','man','man-pages','mlocate','sysstat','vim']
+    state: latest
+
+
 #Setup NTP client
+
+- name: NTP | instal packages
+  yum:
+    name: chrony
+    state: latest
+  when: ansible_hostname != "prdx-ntp101"
+  when: ansible_hostname != "prdx-ntp102"
 
 - name: NTP | setup chrony
   copy:
     src: chrony.conf
     dest: /etc/chrony.conf
+  when: ansible_hostname != "prdx-ntp101"
+  when: ansible_hostname != "prdx-ntp102"
+
+- name: NTP | restart chronyd
+  service:
+    name: chronyd
+    state: restarted
+  when: ansible_hostname != "prdx-ntp101"
+  when: ansible_hostname != "prdx-ntp102"
 
 
 #Setup NFS-AutoFS clients
 
 - name: NFS | instal packages
   yum:
-    name: nfs-utils
-    state: installed
+    name: ['nfs-utils','autofs']
+    state: latest
   when: ansible_hostname != "prdx-nfs101"
-
-- name: NFS | restart multiple services in a loop
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: true
-  become: true
-  loop:
-    - rpcbind
-    - nfs-server
-    - nfs-lock
-    - nfs-idmap
-  when:
-    - ansible_hostname != "prdx-nfs101"
-    - ansible_facts['distribution_major_version'] == "7"
-
-- name: NFS | restart rpcbind for C6
-  service:
-    name: rpcbind
-    state: started
-    enabled: true
-  when:
-    - ansible_hostname != "prdx-nfs101"
-    - ansible_facts['distribution_major_version'] == "6"
 
 - name: NFS | create a mountpoint for NFS
   file:
     path: /share
     state: directory
     mode: 755
-    owner: nobody
-    group: nobody
-  when: ansible_hostname != "prdx-nfs101"
-
-- name: AUTOFS | Install needed packages
-  package:
-    name: autofs
-    state: installed
-  when: ansible_hostname != "prdx-nfs101"
+    owner: nfsnobody
+    group: nfsnobody
+ when: ansible_hostname != "prdx-nfs101"
 
 - name: AUTOFS | Create auto.master and add map-files
   template:
@@ -99,19 +93,47 @@
     dest: /etc/auto.master
   when: ansible_hostname != "prdx-nfs101"
 
-- name: AUTOFS | Create map-files for AUTOFS
+- name: AUTOFS | Create map-files for /share
   template:
-    src: auto.mount.j2
+    src: auto.demo.j2
     dest: /etc/auto.demo
   when: ansible_hostname != "prdx-nfs101"
 
-- name: AUTOFS | Enable Autofs and dependencies
+- name: AUTOFS | Create map-files for /home
+  template:
+    src: auto.home.j2
+    dest: /etc/auto.home
+  when: ansible_hostname != "prdx-nfs101"
+
+- name: AUTOFS | Enable Autofs 
   service:
     name: autofs
-    state: started
+    state: restarted
     enabled: yes
   when: ansible_hostname != "prdx-nfs101"
- 
+
+
+#Setup LDAP client
+
+- name: LDAP | instal packages
+  yum:
+    name: ['openldap-clients','nss-pam-ldapd','authconfig']
+    state: latest
+  when: ansible_hostname != "prdx-ldap101"
+
+- name: LDAP | setup ldap cert
+  command: wget http://192.168.35.32/ca-bundle.crt 
+
+- name: LDAP | configure authconfig
+  command: authconfig --enableldap --enableldapauth --ldapserver=192.168.35.32 --ldapbasedn="dc=ziyotek1,dc=local" --enableldaptls --ldaploadcacert=http://192.168.35.32/ca-bundle.crt --enablemkhomedir --update
+  when: ansible_hostname != "prdx-ldap101"
+
+- name: LDAP | restart service
+  service:
+    name: ######## 
+    state: restarted
+    enabled: yes
+  when: ansible_hostname != "prdx-ldap101"
 
 #Setup Samba clients
 
@@ -139,4 +161,3 @@
   args:
     warn: false
   when: ansible_hostname != "prdx-samba101"
- 

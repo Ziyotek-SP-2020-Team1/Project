@@ -1,14 +1,6 @@
 ---
 # tasks file for loadbalancer7
 
-- name: update /etc/hosts file with webservers
-  template:
-    src: hosts.j2
-    dest: /etc/hosts
-    owner: root
-    group: root
-    mode: 0644
-
 - name: install haproxy
   yum:
     name: haproxy

@@ -1,0 +1,4 @@
+[kubernetes]
+192.168.35.42 kubernetes_role=master
+192.168.35.43 kubernetes_role=node
+192.168.35.44 kubernetes_role=node
